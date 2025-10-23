@@ -50,7 +50,7 @@ export class AuthService {
       password: hash,
     });
 
-    const payload = { sub: user._id, email: user.email };
+    const payload = { sub: user._id, email: user.email}; //role: 'admin'
     const token = await this.jwtService.signAsync(payload);
 
     return { message: 'User registered successfully', token };
@@ -73,7 +73,7 @@ export class AuthService {
     }
 
     // 3. Create JWT payload
-    const payload = { sub: user._id, email: user.email };
+    const payload = { sub: user._id, email: user.email};   //role: 'admin'
     const token = await this.jwtService.signAsync(payload);
 
     // 4. Return success + token
