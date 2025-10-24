@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -7,31 +7,52 @@ import { Model } from 'mongoose';
 
 @Injectable()
 export class CourseService {
-
   constructor(@InjectModel(Course.name) private courseModel: Model<Course>) {}
 
+  // Create a new course
   async create(createCourseDto: CreateCourseDto) {
-    return await this.courseModel.create({
-      name: createCourseDto.name,
-      description: createCourseDto.description,
-      level: createCourseDto.level,
-      price: createCourseDto.price,
-    });
+    const newCourse = new this.courseModel(createCourseDto);
+    return await newCourse.save();
   }
 
-  findAll() {
-    return `This action returns all course`;
+  // Get all courses
+  async findAll() {
+    const courses = await this.courseModel.find().exec();
+    return courses;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} course`;
+  // Get course by ID
+  async findOne(id: string) {
+    const course = await this.courseModel.findById(id).exec();
+    if (!course) {
+      throw new NotFoundException(`Course with ID ${id} not found`);
+    }
+    return course;
   }
 
-  update(id: number, updateCourseDto: UpdateCourseDto) {
-    return `This action updates a #${id} course`;
+  // Update course by ID
+  async update(id: string, updateCourseDto: UpdateCourseDto) {
+    const updatedCourse = await this.courseModel.findByIdAndUpdate(
+      id,
+      updateCourseDto,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedCourse) {
+      throw new NotFoundException(`Course with ID ${id} not found`);
+    }
+
+    return updatedCourse;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} course`;
+  // Delete course by ID
+  async remove(id: string) {
+    const deletedCourse = await this.courseModel.findByIdAndDelete(id);
+
+    if (!deletedCourse) {
+      throw new NotFoundException(`Course with ID ${id} not found`);
+    }
+
+    return { message: 'Course deleted successfully', id: deletedCourse._id };
   }
 }
